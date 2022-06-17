@@ -16,6 +16,8 @@ export default {
             console.log(name.value)
         };
 
+          //이벤트를 사용할 때 함수에서 e(event)라는 객체를 받아옴
+          //input 박스에 대한 정보가 들어있는 객체
         const updateName = (e) => {
             // console.log(e.target.value)
             name.value = e.target.value;

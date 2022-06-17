@@ -23,8 +23,11 @@ export default {
         // const name = reactive ({
         //     id : 1 
         // })
-
-        // const greeting = (name) => {
+        // const updataName = () => {
+        //   name.id = 2;
+        //   console.log(name);
+        // }
+       // const greeting = (name) => {
         //     return 'Hello, ' + name ;
         // };
 
