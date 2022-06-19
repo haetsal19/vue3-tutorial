@@ -1,29 +1,27 @@
 <template>
   <div class="container">
 
-    <h2>To-Do List</h2>
+        <h2>To-Do List</h2>
 
-    <input class="form-control"
-           type="text" v-model="searchText"
-           placeholder="Search">
+        <input class="form-control"
+               type="text" v-model="searchText"
+               placeholder="Search">
 
-    <hr />
+        <hr />
 
-    <TodoSimpleForm @add-todo="addTodo"/>
+        <TodoSimpleForm @add-todo="addTodo"/>
 
-    <div v-if="!filteredTodos.length">
-      There is nothing to display.
-    </div>
-    <!--추가된 todos가 없을때만 표시-->
+        <div v-if="!filteredTodos.length">
+          There is nothing to display.
+        </div>
+        <!--추가된 todos가 없을때만 표시-->
+        <div style="color: red">{{error}}</div>
 
-
-    <TodoList
-        :todos="filteredTodos"
-        @toggle-todo="toggleTodo"
-        @delete-todo="deleteTodo"
-    />
-    <!--부모컴포넌트에서 자식컴포넌트로 데이터를 보낼 때 props를 이용 -->
-
+        <TodoList
+            :todos="filteredTodos"
+            @toggle-todo="toggleTodo"
+            @delete-todo="deleteTodo"
+        />
 
   </div>
 
@@ -33,6 +31,7 @@
 import { ref, computed } from 'vue';
 import TodoSimpleForm from "@/components/TodoSimpleForm";
 import TodoList from "@/components/TodoList";
+import axios from 'axios';
 
 export default {
   components: {
@@ -40,30 +39,67 @@ export default {
     TodoList
   },
   setup() {
-    const todos = ref([]);
+    const todos = ref([]);  //입력한 todo 데이터 리스트
+    const error = ref('');  //에러메시지
 
-    const todoStyle = {
-      textDecoration: 'line-through',
-      color: 'gray'
+    //DB에서 todo 리스트 받아오기
+    const getTodos = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/todos');
+        todos.value = res.data;
+      } catch(err) {
+        console.log(err);
+        error.value = 'Something went wrong.'
+      }
     };
 
-    const addTodo = (todo) => {
-      console.log(todo);
-      todos.value.push(todo);
+    getTodos();
+
+
+    //DB에 새로운 todo 항목 추가
+    const addTodo = async (todo) => {
+      error.value = '';
+      try {
+        const res = await axios.post('http://localhost:3000/todos', {
+          subject: todo.subject,
+          completed: todo.completed,
+        });
+        todos.value.push(res.data);
+      } catch(err) {
+        console.log(err);
+        error.value = 'Something went wrong.'
+      }
     };
 
-    const toggleTodo = (index) => {
-      console.log(todos.value[index].completed);
-      todos.value[index].completed = !todos.value[index].completed;
-      // <label class="form-check-lable" :class="{ todo : todo.completed }">
-      // 체크하면 회색밑줄로 항목 지우는 부분 토글
-      console.log(todos.value[index].completed);
-    }
 
-    const deleteTodo = (index) => {
-      todos.value.splice(index, 1) //todos.value array에 splice로 한개만 지워줌
+    //DB에서 todo 항목 삭제
+    const deleteTodo = async (index) => {
+      error.value = '';
+      const id = todos.value[index].id ;
+      try {
+        await axios.delete('http://localhost:3000/todos/' + id )
+        todos.value.splice(index, 1)
+      } catch (err) {
+          console.log(err);
+          error.value = 'Something went wrong.'
+      }
     };
 
+
+    //todo 항목 앞 체크박스로 completed 항목 토글 및 DB에 completed 업데이트
+    const toggleTodo = async (index) => {
+        error.value = '';
+        const id = todos.value[index].id;
+        try {
+          await axios.patch('http://localhost:3000/todos/' + id, {
+            completed: !todos.value[index].completed
+          })
+          todos.value[index].completed = !todos.value[index].completed;
+        } catch (err) {
+          console.log(err);
+          error.value = 'Something went wrong.'
+        }
+    };
 
     const searchText = ref('');
 
@@ -81,11 +117,11 @@ export default {
     return {
       todos,
       addTodo,
-      todoStyle,
       deleteTodo,
       toggleTodo,
       searchText,
       filteredTodos,
+      error,
     };
   }
 }

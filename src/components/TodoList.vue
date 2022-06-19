@@ -8,13 +8,12 @@
       <div class="form-check flex-grow-1">
         <input class="form-check-input"
                type="checkbox"
-               :value="todo.completed"
+               :checked="todo.completed"
                @change="toggleTodo(index)">
                                   <!--todo를 v-for로 돌릴 때 생기는 index-->
 
 
         <label class="form-check-lable" :class="{ todo : todo.completed }">
-          <!--:style="todo.completed ? todoStyle :  {}"-->
           <!--스타일 바인딩 : 체크박스 true 시 list에 선긋기 -->
 
           {{ todo.subject }}
